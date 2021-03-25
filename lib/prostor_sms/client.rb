@@ -11,11 +11,12 @@ module ProstorSms
       attr_reader :result_send
 
       def balance
-        h = {
+        payload = Oj.dump({
           login: login,
           password: password
-        }
-        result = call_post(configuration.balance_url, Oj.dump(h, {mode: :custom}))
+        }, mode: :custom)
+
+        result = call_post(configuration.balance_url, payload)
         configuration.logger('BALANCE SMS', result)
         sms_balance(result)
       end
@@ -46,31 +47,29 @@ module ProstorSms
       end
 
       def h_payload(messages)
-        h = {
+        Oj.dump({
           messages: messages,
           showBillingDetails: true,
           login: login,
           password: password
-        }
-
-        Oj.dump(h, {mode: :custom})
+        }, mode: :custom)
       end
 
       def result_request(response)
         result = MultiJson.load(response.body)
-        logger('RESULT SMS', result)
+        configuration.logger('RESULT SMS', result)
         result
       end
 
       def call_post(path, payload)
         uri = URI.parse(path)
-        logger('REQUEST SMS', path)
+        configuration.logger('REQUEST SMS', path)
         header = { 'Content-Type': 'text/json' }
 
         http = Net::HTTP.new(uri.host, uri.port)
         request = Net::HTTP::Post.new(uri.request_uri, header)
         request.body = payload
-        logger('PAYLOAD SMS', payload)
+        configuration.logger('PAYLOAD SMS', payload)
 
         response = http.request(request)
         puts response.inspect
@@ -78,7 +77,7 @@ module ProstorSms
         if response.code == '200'
           result = result_request(response)
         else
-          logger('CRASH SMS', 'ERROR!')
+          configuration.logger('CRASH SMS', 'ERROR!')
           result = MultiJson.load('{"status": "error"}')
         end
         result
@@ -102,7 +101,7 @@ module ProstorSms
         count_sms_send = balance / configuration.cost_one_sms
 
         if count_sms_send < all_sms
-          logger('SMS_NOT_SEND', "Sms wasn't sent! Balance:#{balance}, sms: #{all_sms}")
+          configuration.logger('SMS_NOT_SEND', "Sms wasn't sent! Balance:#{balance}, sms: #{all_sms}")
           return 0
         end
 
@@ -117,7 +116,7 @@ module ProstorSms
           all_sms -= configuration.quantity_send_sms
         end
 
-        logger('ALL_SMS_NOT_SEND', "All sms weren't sent! balance:#{balance}, sms not send: #{all_sms}") if all_sms.positive?
+        configuration.logger('ALL_SMS_NOT_SEND', "All sms weren't sent! balance:#{balance}, sms not send: #{all_sms}") if all_sms.positive?
 
         send_sms
       end
@@ -132,10 +131,6 @@ module ProstorSms
 
       def password
         @password ||= configuration.password.to_s
-      end
-
-      def logger
-        @logger ||= configuration.logger
       end
 
       def configuration
