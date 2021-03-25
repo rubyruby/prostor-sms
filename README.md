@@ -30,10 +30,10 @@ Add `config/prostor_sms.yml`
 
 ```
 prostor_sms: &prostor_sms
-  send_url: 'http://api.prostor-sms.ru/messages/v2/send.json'
-  status_url: 'http://api.prostor-sms.ru/messages/v2/status.json'
-  status_queue_url: 'http://api.prostor-sms.ru/messages/v2/statusQueue.json'
-  balance_url: 'http://api.prostor-sms.ru/messages/v2/balance.json'
+  send_url: 'https://api.prostor-sms.ru/messages/v2/send.json'
+  status_url: 'https://api.prostor-sms.ru/messages/v2/status.json'
+  status_queue_url: 'https://api.prostor-sms.ru/messages/v2/statusQueue.json'
+  balance_url: 'https://api.prostor-sms.ru/messages/v2/balance.json'
   log: 'log/prostor_sms.log'
   quantity_send_sms: 1
   cost_one_sms: 3
